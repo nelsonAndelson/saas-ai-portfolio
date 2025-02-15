@@ -13,6 +13,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PricingTier from "./PricingTier";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import CalendlyEmbed from "./CalendlyEmbed";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ContactFormData, contactFormSchema } from "../lib/schemas";
+import { useToast } from "@/hooks/use-toast";
 
 const pricingTiers = [
   {
@@ -109,17 +121,46 @@ const TrustedBySection = () => {
 };
 
 export default function Pricing() {
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    company: "",
-    aiNeeds: "",
+  const [showCalendly, setShowCalendly] = useState(false);
+  const { toast } = useToast();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    setValue,
+    reset,
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Here you would typically send the data to your backend
+  const formData = watch();
+
+  const onSubmit = async (data: ContactFormData) => {
+    try {
+      // Here you would typically send the data to your backend
+      console.log("Form submitted:", data);
+
+      // Show success toast
+      toast({
+        title: "Success!",
+        description:
+          "Your information has been submitted. Let's schedule your consultation!",
+        duration: 5000,
+      });
+
+      // Reset form fields
+      reset();
+
+      // Show Calendly modal
+      setShowCalendly(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -161,7 +202,7 @@ export default function Pricing() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-center text-white">
                   Get a Custom AI Solution
@@ -175,48 +216,51 @@ export default function Pricing() {
                 <div className="space-y-2">
                   <Label className="text-white">Name</Label>
                   <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    {...register("name")}
                     placeholder="John Doe"
                     className="bg-white/10 border-white/10 text-white placeholder:text-white/60"
                   />
+                  {errors.name && (
+                    <p className="text-red-400 text-sm mt-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-white">Email</Label>
                   <Input
-                    id="email"
+                    {...register("email")}
                     type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
                     placeholder="john@company.com"
                     className="bg-white/10 border-white/10 text-white placeholder:text-white/60"
                   />
+                  {errors.email && (
+                    <p className="text-red-400 text-sm mt-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-white">Company Name</Label>
                   <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) =>
-                      setFormData({ ...formData, company: e.target.value })
-                    }
+                    {...register("company")}
                     placeholder="Your Company"
                     className="bg-white/10 border-white/10 text-white placeholder:text-white/60"
                   />
+                  {errors.company && (
+                    <p className="text-red-400 text-sm mt-1">
+                      {errors.company.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-white">AI Needs</Label>
                   <Select
                     onValueChange={(value) =>
-                      setFormData({ ...formData, aiNeeds: value })
+                      setValue("aiNeeds", value as ContactFormData["aiNeeds"])
                     }
                   >
                     <SelectTrigger className="bg-white/10 border-white/10 text-white">
@@ -249,6 +293,11 @@ export default function Pricing() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.aiNeeds && (
+                    <p className="text-red-400 text-sm mt-1">
+                      {errors.aiNeeds.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -261,9 +310,12 @@ export default function Pricing() {
                 <Button
                   type="submit"
                   size="lg"
+                  disabled={isSubmitting}
                   className="relative w-full bg-background hover:bg-background/90 text-white px-8 py-6 h-auto text-lg font-medium"
                 >
-                  Get Started
+                  {isSubmitting
+                    ? "Processing..."
+                    : "Book a Free AI Consultation"}
                   <span className="ml-2">→</span>
                 </Button>
               </motion.div>
@@ -271,6 +323,33 @@ export default function Pricing() {
           </motion.div>
         </div>
       </div>
+
+      <Dialog open={showCalendly} onOpenChange={setShowCalendly}>
+        <DialogContent className="max-w-4xl max-h-[95vh] bg-background border-white/10 p-6 overflow-hidden">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-2xl font-bold text-white">
+              Schedule Your Free AI Consultation
+            </DialogTitle>
+            <DialogDescription className="text-white/80">
+              Choose a time that works best for you. We'll discuss your AI needs
+              and create a tailored solution.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 -mx-6">
+            <CalendlyEmbed
+              url="https://calendly.com/nelsonbaguma15"
+              prefill={{
+                name: formData.name?.replace(/\s+/g, " ").trim() || "",
+                email: formData.email,
+                customAnswers: {
+                  a1: formData.company?.replace(/\s+/g, " ").trim() || "",
+                  a2: formData.aiNeeds,
+                },
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

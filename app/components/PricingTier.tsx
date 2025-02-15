@@ -25,8 +25,10 @@ export default function PricingTier({
 }: PricingTierProps) {
   return (
     <motion.div
-      className={`relative p-6 bg-white/5 backdrop-blur-sm rounded-xl border ${
-        isPopular ? "border-[#8C52FF]" : "border-white/10"
+      className={`relative p-6 rounded-xl border bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-sm ${
+        isPopular
+          ? "border-[#8C52FF] shadow-lg shadow-[#8C52FF]/20"
+          : "border-white/10"
       }`}
       whileHover={{ y: -5 }}
       initial={{ opacity: 0, y: 20 }}
@@ -35,7 +37,7 @@ export default function PricingTier({
       transition={{ duration: 0.3 }}
     >
       {isPopular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#8C52FF] text-white text-sm rounded-full">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#8C52FF] text-white text-sm font-medium rounded-full shadow-lg shadow-[#8C52FF]/30">
           Most Popular
         </span>
       )}
@@ -44,17 +46,19 @@ export default function PricingTier({
         <div className="space-y-2">
           <h3 className="text-2xl font-bold text-white">{name}</h3>
           {bestFor && (
-            <p className="text-sm text-[#8C52FF]">Best for: {bestFor}</p>
+            <p className="text-sm font-medium text-[#B794FF]">
+              Best for: {bestFor}
+            </p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <p className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8C52FF] to-[#6C63FF]">
+        <div className="space-y-2">
+          <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8C52FF] to-[#B794FF]">
             {price}
           </p>
-          <p className="text-sm text-white/60">{description}</p>
+          <p className="text-base text-white/70">{description}</p>
           {roi && (
-            <p className="text-sm text-[#8C52FF]/90 mt-2 font-medium">
+            <p className="text-sm text-[#B794FF] mt-2 font-medium">
               ROI: {roi}
             </p>
           )}
@@ -62,15 +66,15 @@ export default function PricingTier({
 
         <ul className="space-y-3 pt-4">
           {features.map((feature) => (
-            <li key={feature} className="flex items-center gap-2">
+            <li key={feature} className="flex items-center gap-3">
               <div className="relative flex items-center justify-center w-5 h-5">
-                <div className="absolute inset-0 bg-[#8C52FF] opacity-20 rounded-full blur-[2px]" />
+                <div className="absolute inset-0 bg-[#8C52FF] opacity-25 rounded-full blur-[2px]" />
                 <Check
-                  className="h-4 w-4 text-[#8C52FF] relative z-10"
+                  className="h-4 w-4 text-[#B794FF] relative z-10"
                   strokeWidth={3}
                 />
               </div>
-              <span className="text-sm text-white/80">{feature}</span>
+              <span className="text-sm text-white/90">{feature}</span>
             </li>
           ))}
         </ul>
@@ -78,10 +82,10 @@ export default function PricingTier({
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="relative group"
+          className="relative group pt-2"
         >
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#8C52FF] to-[#6C63FF] rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-200"></div>
-          <Button className="relative w-full bg-background hover:bg-background/90 text-white px-4 py-2 h-auto text-base font-medium shadow-lg shadow-[#8C52FF]/20">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#8C52FF] to-[#B794FF] rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+          <Button className="relative w-full bg-[#1a1a1a] hover:bg-[#252525] text-white px-4 py-3 h-auto text-base font-medium shadow-xl shadow-[#8C52FF]/20">
             Get Started
             <motion.span
               className="ml-2"
