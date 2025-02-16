@@ -164,7 +164,7 @@ export default function Pricing() {
   };
 
   return (
-    <section className="relative py-20 px-4 md:px-6 lg:px-8 bg-background">
+    <section id="pricing-section" className="relative py-20 px-4 md:px-6 lg:px-8 bg-background">
       <div className="absolute inset-0 bg-gradient-to-br from-[#1E2A47] via-[#2A2F4E] to-[#6C63FF] opacity-50" />
 
       <div className="container max-w-7xl mx-auto relative">
@@ -201,6 +201,7 @@ export default function Pricing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
+            id="consultation-form-section"
           >
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">

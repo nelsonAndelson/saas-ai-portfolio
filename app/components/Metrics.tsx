@@ -143,6 +143,12 @@ export default function Metrics() {
             <div className="absolute -inset-0.5 bg-gradient-to-r from-[#8C52FF] to-[#6C63FF] rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-200"></div>
             <Button
               size="lg"
+              onClick={() => {
+                const chatInterface = document.querySelector('#chat-interface');
+                if (chatInterface) {
+                  chatInterface.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               className="relative bg-background hover:bg-background/90 text-white px-4 py-2 h-auto text-base font-medium shadow-lg shadow-[#8C52FF]/20"
             >
               See AI in Action

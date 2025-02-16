@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import CountUp from "react-countup";
+import { ChatInterface } from "./chat/ChatInterface";
 
 interface ChatMessageProps {
   isUser: boolean;
@@ -358,10 +359,6 @@ const AnimatedValue = ({ value, suffix = "" }: AnimatedValueProps) => {
 };
 
 export default function Hero() {
-  const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 200], [1, 0]);
-  const y = useTransform(scrollY, [0, 200], [0, 100]);
-
   return (
     <section className="relative py-20 px-4 md:px-6 lg:px-8 bg-background dark:bg-background backdrop-blur-3xl min-h-screen flex items-center">
       <GradientBackground />
@@ -373,7 +370,6 @@ export default function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            style={{ opacity, y }}
           >
             <HeroRating />
 
@@ -422,6 +418,12 @@ export default function Hero() {
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#8C52FF] to-[#6C63FF] rounded-lg blur opacity-60 group-hover:opacity-100 transition duration-200"></div>
                 <Button
                   size="lg"
+                  onClick={() => {
+                    const chatInterface = document.querySelector('#chat-interface');
+                    if (chatInterface) {
+                      chatInterface.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                   className="relative bg-background hover:bg-background/90 text-white px-6 py-3 h-auto text-base font-medium shadow-xl shadow-[#8C52FF]/20"
                 >
                   Try AI Chatbot Now
@@ -435,87 +437,97 @@ export default function Hero() {
                 </Button>
               </motion.div>
 
-              <motion.div whileHover={{ scale: 1.02 }} className="relative">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="relative group"
+              >
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#8C52FF] to-[#6C63FF] rounded-lg blur opacity-30 group-hover:opacity-50 transition duration-200"></div>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white/20 hover:border-white/40 hover:bg-white/5 text-white/90 px-6 py-3 h-auto text-base font-medium backdrop-blur-sm"
+                  onClick={() => {
+                    const consultationForm = document.querySelector('#consultation-form-section');
+                    if (consultationForm) {
+                      consultationForm.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="relative border-white/20 hover:border-white/40 hover:bg-white/5 text-white/90 px-6 py-3 h-auto text-base font-medium backdrop-blur-sm"
                 >
-                  Watch Demo
-                  <motion.svg
-                    className="ml-2 w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                  Book Free Consultation
+                  <motion.span
+                    className="ml-2"
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ duration: 1, repeat: Infinity }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </motion.svg>
+                    →
+                  </motion.span>
                 </Button>
               </motion.div>
             </motion.div>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-[3fr,1fr] gap-8 mb-16">
             <div className="space-y-8 order-2 md:order-1">
-              <ChatbotPreview />
+              <ChatInterface />
             </div>
             <div className="space-y-8 order-1 md:order-2">
-              <div className="grid grid-cols-2 gap-4">
+              <motion.div 
+                className="grid grid-cols-1 gap-4 sticky top-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
                 {[
                   {
                     label: "Ticket Reduction",
                     value: "70%",
                     description: "Fewer support tickets",
+                    icon: "📉"
                   },
                   {
                     label: "Cost Savings",
                     value: "60%",
                     description: "Reduced support costs",
+                    icon: "💰"
                   },
                   {
                     label: "Response Time",
                     value: "24/7",
                     description: "Instant responses",
+                    icon: "⚡"
                   },
                   {
                     label: "Satisfaction",
                     value: "95%",
                     description: "Customer happiness",
+                    icon: "😊"
                   },
                 ].map((stat) => (
                   <motion.div
                     key={stat.label}
-                    className="p-6 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
+                    className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm relative group overflow-hidden"
                     whileHover={{
                       scale: 1.02,
                       backgroundColor: "rgba(255, 255, 255, 0.08)",
                     }}
                   >
-                    <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8C52FF] to-[#6C63FF]">
-                      {stat.value}
+                    <div className="absolute -right-2 -top-2 text-3xl opacity-10 group-hover:opacity-20 transition-opacity">
+                      {stat.icon}
                     </div>
-                    <div className="text-sm font-medium text-white/60">
-                      {stat.label}
-                    </div>
-                    <div className="text-xs text-white/40 mt-1">
-                      {stat.description}
+                    <div className="relative">
+                      <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#8C52FF] to-[#6C63FF]">
+                        {stat.value}
+                      </div>
+                      <div className="text-sm font-medium text-white/60">
+                        {stat.label}
+                      </div>
+                      <div className="text-xs text-white/40 mt-1">
+                        {stat.description}
+                      </div>
                     </div>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
