@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState} from "react";
 import { motion } from "framer-motion";
 import { nanoid } from "nanoid";
 import { useChatStore, Message, CompanyInfo } from "@/store/chat";
@@ -450,9 +450,9 @@ export const ChatInterface = () => {
         }, 1500);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Chat error:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
       setLoading(false);
     }

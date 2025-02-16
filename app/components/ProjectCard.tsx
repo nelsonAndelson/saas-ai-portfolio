@@ -7,7 +7,6 @@ import { Icons } from "../components/ui/icons";
 interface ProjectCardProps {
   title: string;
   description: string;
-  demoLink: string;
   techStack: string[];
   icon: keyof typeof Icons;
 }
@@ -15,7 +14,6 @@ interface ProjectCardProps {
 export default function ProjectCard({
   title,
   description,
-  demoLink,
   techStack,
   icon,
 }: ProjectCardProps) {

@@ -120,7 +120,7 @@ export default function Metrics() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {metrics.map((metric, index) => (
             <AnimatedMetric
-              key={metric.title}
+              key={index}
               value={metric.percentage}
               title={metric.title}
               description={metric.description}

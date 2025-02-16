@@ -6,9 +6,19 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
-import { RunnableSequence } from "@langchain/core/runnables";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  id: string;
+}
+
+interface TavilySearchResult {
+  pageContent: string;
+  metadata: {
+    [key: string]: unknown;
+  };
+}
 
 // Initialize Tavily retriever
 const initTavilyRetriever = () => {
@@ -66,20 +76,17 @@ export async function POST(req: Request) {
     console.log("Chat API: Initializing Tavily retriever");
     const retriever = initTavilyRetriever();
     console.log("Chat API: Initializing ChatOpenAI");
-    const chatModel = new ChatOpenAI({
-      modelName: "gpt-4",
-      temperature: 0.7,
-    });
+    const chatModel = initChatModel();
 
     // Perform Tavily search for company information
     const searchQuery = `${companyName} company information products services pricing ${websiteUrl}`;
     console.log("Chat API: Performing Tavily search with query:", searchQuery);
-    const searchResults = await retriever.invoke(searchQuery);
+    const searchResults = await retriever.invoke(searchQuery) as TavilySearchResult[];
     console.log("Chat API: Search results received:", searchResults);
 
     // Format search results for context
     const searchContext = searchResults
-      .map((result: any) => result.pageContent)
+      .map((result: TavilySearchResult) => result.pageContent)
       .join("\n\n");
     console.log("Chat API: Formatted search context length:", searchContext.length);
 
@@ -116,7 +123,7 @@ export async function POST(req: Request) {
 
     // Convert incoming messages to LangChain format
     console.log("Chat API: Converting messages to LangChain format");
-    const formattedMessages = messages.map((msg: any) => {
+    const formattedMessages = messages.map((msg: ChatMessage) => {
       if (msg.role === "user") {
         return new HumanMessage(msg.content);
       }
@@ -138,10 +145,10 @@ export async function POST(req: Request) {
     const validatedResponse = validateConsultationResponse(responseContent);
 
     return NextResponse.json({ content: validatedResponse });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Chat API Error:", error);
     return NextResponse.json(
-      { error: "Error processing chat request" },
+      { error: error instanceof Error ? error.message : "An unknown error occurred" },
       { status: 500 }
     );
   }

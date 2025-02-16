@@ -74,13 +74,6 @@ const pricingTiers = [
   },
 ];
 
-interface FormData {
-  name: string;
-  email: string;
-  company: string;
-  aiNeeds: string;
-}
-
 const TrustedBySection = () => {
   return (
     <motion.div
@@ -108,8 +101,8 @@ const TrustedBySection = () => {
         </div>
         <div className="max-w-2xl mx-auto mt-6 px-6">
           <blockquote className="text-lg italic text-white/80">
-            "We automated 60% of our support tickets in 30 days. Absolute
-            game-changer for our team!"
+            &ldquo;We automated 60% of our support tickets in 30 days. Absolute
+            game-changer for our team!&rdquo;
             <footer className="mt-2 text-sm font-medium text-white/60">
               - John D., CEO @ TechFlow
             </footer>
@@ -145,7 +138,7 @@ export default function Pricing() {
       toast({
         title: "Success!",
         description:
-          "Your information has been submitted. Let's schedule your consultation!",
+          "Your information has been submitted. Let&apos;s schedule your consultation!",
         duration: 5000,
       });
 
@@ -154,7 +147,7 @@ export default function Pricing() {
 
       // Show Calendly modal
       setShowCalendly(true);
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
