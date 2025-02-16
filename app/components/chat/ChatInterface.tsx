@@ -214,10 +214,48 @@ const CompanyInfoForm = ({
     companyName: "",
     websiteUrl: "",
   });
+  const [urlError, setUrlError] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (!isValidUrl(formData.websiteUrl)) {
+      setUrlError("Please enter a valid website URL");
+      return;
+    }
+    const formattedData = {
+      ...formData,
+      websiteUrl: formatWebsiteUrl(formData.websiteUrl),
+    };
+    onSubmit(formattedData);
+  };
+
+  const isValidUrl = (url: string): boolean => {
+    if (!url) return false;
+    // Basic URL validation pattern
+    const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/i;
+    return urlPattern.test(url);
+  };
+
+  const formatWebsiteUrl = (url: string): string => {
+    if (!url) return url;
+    url = url.trim();
+    if (!url.match(/^https?:\/\//i)) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, websiteUrl: value }));
+    
+    // Clear error when user starts typing
+    if (urlError) setUrlError("");
+    
+    // Validate URL as user types
+    if (value && !isValidUrl(value)) {
+      setUrlError("Please enter a valid website URL");
+    }
   };
 
   return (
@@ -231,15 +269,21 @@ const CompanyInfoForm = ({
         }
         required
       />
-      <Input
-        type="url"
-        placeholder="Website URL"
-        value={formData.websiteUrl}
-        onChange={(e) =>
-          setFormData((prev) => ({ ...prev, websiteUrl: e.target.value }))
-        }
-        required
-      />
+      <div className="space-y-2">
+        <Input
+          type="text"
+          placeholder="Website URL (e.g., example.com)"
+          value={formData.websiteUrl}
+          onChange={handleUrlChange}
+          className={`${urlError ? 'border-red-500 focus:border-red-500' : ''}`}
+          required
+        />
+        {urlError && (
+          <p className="text-sm text-red-500">
+            {urlError}
+          </p>
+        )}
+      </div>
       <Button type="submit" className="w-full">
         Start Demo
       </Button>
