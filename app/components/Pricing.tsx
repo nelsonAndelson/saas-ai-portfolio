@@ -147,6 +147,16 @@ export default function Pricing() {
 
       // Show Calendly modal
       setShowCalendly(true);
+
+      const chatInterface = document.querySelector(`#chat-interface`);
+      if (chatInterface) {
+        chatInterface.scrollIntoView({ behavior: `smooth` });
+      }
+
+      const consultationForm = document.querySelector(`#consultation-form-section`);
+      if (consultationForm) {
+        consultationForm.scrollIntoView({ behavior: `smooth` });
+      }
     } catch {
       toast({
         title: "Error",

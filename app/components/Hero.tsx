@@ -6,12 +6,6 @@ import { useState, useRef, useEffect } from "react";
 import CountUp from "react-countup";
 import { ChatInterface } from "./chat/ChatInterface";
 
-interface ChatMessageProps {
-  isUser: boolean;
-  message: string;
-  isTyping?: boolean;
-}
-
 interface AnimatedValueProps {
   value: string;
   suffix?: string;
@@ -93,46 +87,6 @@ const TypingAnimation = () => {
   );
 };
 
-const ChatMessage = ({
-  isUser,
-  message,
-  isTyping = false,
-}: ChatMessageProps) => {
-  return (
-    <motion.div
-      className={`flex items-start space-x-3 ${
-        isUser ? "flex-row-reverse space-x-reverse" : ""
-      }`}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div
-        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-          isUser ? "bg-[#8C52FF]/20" : "bg-white/10"
-        }`}
-      >
-        <span className="text-sm">{isUser ? "👤" : "🤖"}</span>
-      </div>
-      <div className={`flex-1 ${isUser ? "text-right" : ""}`}>
-        <div
-          className={`inline-block max-w-[80%] px-4 py-2 rounded-2xl ${
-            isUser
-              ? "bg-[#8C52FF] text-white ml-auto rounded-tr-none"
-              : "bg-white/10 backdrop-blur-sm text-white/90 rounded-tl-none"
-          }`}
-        >
-          {isTyping ? (
-            <TypingAnimation />
-          ) : (
-            <p className="text-sm">{message}</p>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
 const FloatingParticle = ({ delay = 0, className = "" }) => {
   return (
     <motion.div
@@ -206,9 +160,10 @@ const HeroRating = () => {
 
 const AnimatedValue = ({ value, suffix = "" }: AnimatedValueProps) => {
   const [isInView, setIsInView] = useState(false);
-  const countRef = useRef(null);
+  const countRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
+    const currentRef = countRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -218,13 +173,13 @@ const AnimatedValue = ({ value, suffix = "" }: AnimatedValueProps) => {
       { threshold: 0.5 }
     );
 
-    if (countRef.current) {
-      observer.observe(countRef.current);
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (countRef.current) {
-        observer.unobserve(countRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
@@ -256,6 +211,7 @@ export default function Hero() {
   return (
     <section className="relative py-20 px-4 md:px-6 lg:px-8 bg-background dark:bg-background backdrop-blur-3xl min-h-screen flex items-center">
       <GradientBackground />
+      <FloatingElements />
       <div className="container max-w-7xl mx-auto">
         <div className="max-w-4xl mx-auto">
           <motion.div

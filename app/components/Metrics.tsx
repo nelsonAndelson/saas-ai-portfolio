@@ -13,9 +13,10 @@ interface AnimatedMetricProps {
 
 const AnimatedMetric = ({ value, title, description }: AnimatedMetricProps) => {
   const [isInView, setIsInView] = useState(false);
-  const countRef = useRef(null);
+  const countRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const currentRef = countRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -25,13 +26,13 @@ const AnimatedMetric = ({ value, title, description }: AnimatedMetricProps) => {
       { threshold: 0.5 }
     );
 
-    if (countRef.current) {
-      observer.observe(countRef.current);
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (countRef.current) {
-        observer.unobserve(countRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
