@@ -62,31 +62,6 @@ const GradientBackground = () => {
   );
 };
 
-const TypingAnimation = () => {
-  return (
-    <motion.div
-      className="flex space-x-1 h-3"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      {[0, 1, 2].map((dot) => (
-        <motion.div
-          key={dot}
-          className="w-1.5 h-1.5 bg-primary rounded-full"
-          animate={{ y: ["0%", "-50%", "0%"] }}
-          transition={{
-            duration: 0.6,
-            repeat: Infinity,
-            delay: dot * 0.2,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </motion.div>
-  );
-};
-
 const FloatingParticle = ({ delay = 0, className = "" }) => {
   return (
     <motion.div

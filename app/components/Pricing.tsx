@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react/no-unescaped-entities */
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -148,14 +149,14 @@ export default function Pricing() {
       // Show Calendly modal
       setShowCalendly(true);
 
-      const chatInterface = document.querySelector(`#chat-interface`);
+      const chatInterface = document.querySelector("#chat-interface");
       if (chatInterface) {
-        chatInterface.scrollIntoView({ behavior: `smooth` });
+        chatInterface.scrollIntoView({ behavior: "smooth" });
       }
 
-      const consultationForm = document.querySelector(`#consultation-form-section`);
+      const consultationForm = document.querySelector("#consultation-form-section");
       if (consultationForm) {
-        consultationForm.scrollIntoView({ behavior: `smooth` });
+        consultationForm.scrollIntoView({ behavior: "smooth" });
       }
     } catch {
       toast({
@@ -212,7 +213,7 @@ export default function Pricing() {
                   Get a Custom AI Solution
                 </h3>
                 <p className="text-white/80 text-center">
-                  Tell us about your needs and we'll create a tailored solution
+                  Tell us about your needs and we&apos;ll create a tailored solution
                 </p>
               </div>
 
@@ -335,7 +336,7 @@ export default function Pricing() {
               Schedule Your Free AI Consultation
             </DialogTitle>
             <DialogDescription className="text-white/80">
-              Choose a time that works best for you. We'll discuss your AI needs
+              Choose a time that works best for you. We&apos;ll discuss your AI needs
               and create a tailored solution.
             </DialogDescription>
           </DialogHeader>
