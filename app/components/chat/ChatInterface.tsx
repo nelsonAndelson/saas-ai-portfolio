@@ -404,10 +404,7 @@ export const ChatInterface = () => {
     const messageToSend = messageText || inputMessage;
     if (!messageToSend.trim() || !companyInfo) return;
 
-    // Show consultation FAB if:
-    // 1. User says "yes" after consultation suggestion
-    // 2. Message contains consultation-related keywords
-    // 3. After 3 messages
+    // Show consultation FAB if needed
     const consultationKeywords = ['consultation', 'demo', 'book', 'schedule', 'meeting', 'yes'];
     const isConsultationRelated = consultationKeywords.some(keyword => 
       messageToSend.toLowerCase().includes(keyword)
@@ -416,7 +413,7 @@ export const ChatInterface = () => {
     if (
       (messageToSend.toLowerCase().trim() === "yes" && interactionStage.hasShownConsultation) ||
       isConsultationRelated ||
-      interactionStage.messageCount >= 2  // Show after 3rd message (count starts at 0)
+      interactionStage.messageCount >= 2
     ) {
       setShowConsultationFAB(true);
     }
@@ -427,10 +424,7 @@ export const ChatInterface = () => {
       messageCount: prev.messageCount + 1,
     }));
 
-    console.log("Sending message:", messageToSend);
-    console.log("Company info:", companyInfo);
-
-    // Add user message
+    // Add user message immediately
     const userMessage: Message = {
       id: nanoid(),
       role: "user",
@@ -441,7 +435,7 @@ export const ChatInterface = () => {
     setLoading(true);
 
     try {
-      console.log("Making API request with messages:", [...messages, userMessage]);
+      // Send message to API
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -455,49 +449,81 @@ export const ChatInterface = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("API error response:", errorData);
         throw new Error(errorData.error || "Failed to send message");
       }
 
-      const data = await response.json();
+      const { requestId } = await response.json();
       
-      // Add AI response message
-      addMessage({
-        id: nanoid(),
-        role: "assistant",
-        content: data.content,
-      });
-
-      // Clear suggested questions after first question is asked
-      setSuggestedQuestions([]);
-
-      // After 2 messages, show industry insights
-      if (interactionStage.messageCount === 2 && !interactionStage.hasShownInsights) {
-        setTimeout(() => {
-          addMessage({
-            id: nanoid(),
-            role: "assistant",
-            content: `Based on our conversation and my analysis of ${companyInfo.companyName}, I've identified some specific opportunities for AI implementation in your industry. Would you like me to share a detailed breakdown of potential automation areas and expected ROI?`,
-          });
-          setInteractionStage(prev => ({ 
-            ...prev, 
-            hasShownInsights: true,
-            hasShownValue: true // Mark that we've shown value
-          }));
-        }, 1000);
-      }
-
-      // Show consultation CTA after value demonstration
-      if (interactionStage.hasShownValue && !interactionStage.hasShownConsultation) {
-        setTimeout(() => {
-          setInteractionStage(prev => ({ ...prev, hasShownConsultation: true }));
-        }, 1500);
-      }
+      // Poll for result
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`/api/chat?requestId=${requestId}`);
+          if (!statusResponse.ok) {
+            throw new Error('Failed to get message status');
+          }
+          
+          const chatRequest = await statusResponse.json();
+          
+          if (chatRequest.status === 'completed') {
+            clearInterval(pollInterval);
+            setLoading(false);
+            
+            // Add AI response message
+            addMessage({
+              id: nanoid(),
+              role: "assistant",
+              content: chatRequest.result,
+            });
+            
+            // Clear suggested questions after first question
+            setSuggestedQuestions([]);
+            
+            // Handle insights and consultation prompts
+            if (interactionStage.messageCount === 2 && !interactionStage.hasShownInsights) {
+              setTimeout(() => {
+                addMessage({
+                  id: nanoid(),
+                  role: "assistant",
+                  content: `Based on our conversation and my analysis of ${companyInfo.companyName}, I've identified some specific opportunities for AI implementation in your industry. Would you like me to share a detailed breakdown of potential automation areas and expected ROI?`,
+                });
+                setInteractionStage(prev => ({ 
+                  ...prev, 
+                  hasShownInsights: true,
+                  hasShownValue: true
+                }));
+              }, 1000);
+            }
+            
+            if (interactionStage.hasShownValue && !interactionStage.hasShownConsultation) {
+              setTimeout(() => {
+                setInteractionStage(prev => ({ ...prev, hasShownConsultation: true }));
+              }, 1500);
+            }
+          } else if (chatRequest.status === 'failed') {
+            clearInterval(pollInterval);
+            setLoading(false);
+            throw new Error(chatRequest.error || 'Failed to process message');
+          }
+          
+        } catch (pollError) {
+          clearInterval(pollInterval);
+          setLoading(false);
+          setError(pollError instanceof Error ? pollError.message : "Failed to get message status");
+        }
+      }, 1000); // Poll every second
+      
+      // Clear polling after 30 seconds to prevent infinite polling
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (isLoading) {
+          setLoading(false);
+          setError("Request timed out. Please try again.");
+        }
+      }, 30000);
 
     } catch (err: unknown) {
       console.error("Chat error:", err);
       setError(err instanceof Error ? err.message : "An unknown error occurred");
-    } finally {
       setLoading(false);
     }
   };
