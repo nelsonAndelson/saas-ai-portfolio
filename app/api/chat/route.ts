@@ -15,6 +15,9 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
+export const runtime = 'edge'
+export const preferredRegion = 'iad1'
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -84,6 +87,99 @@ const validateConsultationResponse = (response: string | { type: string; text: s
   return responseText;
 };
 
+async function processMessage(chatRequest: ChatRequest) {
+  try {
+    // Update status to processing
+    chatRequest.status = 'processing';
+    await redis.set(`chat:${chatRequest.id}`, JSON.stringify(chatRequest));
+    
+    // Initialize tools
+    const retriever = new TavilySearchAPIRetriever({
+      apiKey: process.env.TAVILY_API_KEY!,
+      k: 5,
+    });
+    
+    const chatModel = new ChatOpenAI({
+      modelName: "gpt-4",
+      temperature: 0.7,
+      streaming: true,
+    });
+    
+    const { messages, companyInfo } = chatRequest;
+    const { companyName, websiteUrl } = companyInfo;
+    
+    // Perform Tavily search
+    const searchQuery = `${companyName} company information products services pricing ${websiteUrl}`;
+    const searchResults = await retriever.invoke(searchQuery);
+    
+    // Format search results
+    const searchContext = searchResults
+      .map((result: any) => result.pageContent)
+      .join("\n\n");
+    
+    // Create system message with the same content as before
+    const systemMessage = new SystemMessage(
+      `You are an AI Customer Support Specialist for ${companyName}. 
+      Use this context about the company: ${searchContext}
+
+      Key Instructions:
+      1. Be concise and results-focused - lead with specific metrics and ROI.
+      2. Focus on our three core services:
+         - AI Support Automation (70% reduction in support workload)
+         - Workflow Automation (60% reduction in manual tasks)
+         - AI Analytics & Insights (85% prediction accuracy)
+      3. When discussing features, always connect them to business outcomes:
+         - Support Automation: "24/7 customer support, 80% automated resolution"
+         - Workflow Automation: "Reduce manual CRM/billing tasks by 60%"
+         - Analytics: "Predict customer behavior with 85% accuracy"
+      4. Use technical details to build credibility:
+         - Mention our expertise with ChatGPT API, ML models, and automation pipelines
+         - Describe specific integrations (Zendesk, HubSpot, Stripe)
+      5. Always end with a clear next step or action item.
+      6. CRITICAL - Consultation Handling:
+         - When users express interest in a demo or consultation, ALWAYS direct them to our built-in consultation booking system
+         - NEVER refer users to external websites or company URLs
+         - Use the following format for consultation responses:
+           "I'd be happy to help you schedule a consultation. You can book a time right now by clicking the 'Book Free Consultation' button above, or I can guide you through our quick booking process. Would you like me to help you schedule a consultation?"
+         - If they say yes, respond with:
+           "Great! Just click the 'Book Free Consultation' button at the top of our chat, and you'll be able to choose a time that works best for you. Our team will walk you through a personalized demo of how our AI solutions can benefit your business."
+
+      Remember: Focus on concrete results and technical expertise while maintaining a helpful, consultative tone.`
+    );
+    
+    // Convert messages to LangChain format
+    const formattedMessages = messages.map((msg: ChatMessage) => {
+      if (msg.role === "user") {
+        return new HumanMessage(msg.content);
+      }
+      return new AIMessage(msg.content);
+    });
+    
+    // Get response from the model
+    const response = await chatModel.call([
+      systemMessage,
+      ...formattedMessages,
+    ]);
+    
+    // Extract and validate response
+    const responseContent = typeof response.content === 'string' 
+      ? response.content 
+      : JSON.stringify(response.content);
+    
+    // Update chat request with result
+    chatRequest.status = 'completed';
+    chatRequest.result = responseContent;
+    await redis.set(`chat:${chatRequest.id}`, JSON.stringify(chatRequest));
+    
+    return chatRequest;
+  } catch (error) {
+    chatRequest.status = 'failed';
+    chatRequest.error = error instanceof Error ? error.message : 'Unknown error occurred';
+    await redis.set(`chat:${chatRequest.id}`, JSON.stringify(chatRequest));
+    throw error;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, companyInfo } = await req.json();
@@ -100,18 +196,13 @@ export async function POST(req: Request) {
       createdAt: Date.now(),
     };
     
-    // Store the request in Redis
+    // Store the initial request in Redis
     await redis.set(`chat:${requestId}`, JSON.stringify(chatRequest));
     
-    // Add to processing queue
-    await redis.lpush('chat:queue', requestId);
+    // Process the message directly in the edge function
+    const processedRequest = await processMessage(chatRequest);
     
-    // Return immediately with the request ID
-    return NextResponse.json({ 
-      requestId,
-      status: 'pending',
-      message: 'Request queued for processing'
-    });
+    return NextResponse.json(processedRequest);
     
   } catch (error: unknown) {
     console.error("Chat API Error:", error);
@@ -122,7 +213,7 @@ export async function POST(req: Request) {
   }
 }
 
-// New endpoint to check status and get results
+// Status check endpoint remains the same
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

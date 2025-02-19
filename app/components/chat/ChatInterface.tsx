@@ -467,38 +467,38 @@ export const ChatInterface = () => {
           if (chatRequest.status === 'completed') {
             clearInterval(pollInterval);
             setLoading(false);
-            
-            // Add AI response message
-            addMessage({
-              id: nanoid(),
-              role: "assistant",
+      
+      // Add AI response message
+      addMessage({
+        id: nanoid(),
+        role: "assistant",
               content: chatRequest.result,
-            });
-            
+      });
+
             // Clear suggested questions after first question
-            setSuggestedQuestions([]);
-            
+      setSuggestedQuestions([]);
+
             // Handle insights and consultation prompts
-            if (interactionStage.messageCount === 2 && !interactionStage.hasShownInsights) {
-              setTimeout(() => {
-                addMessage({
-                  id: nanoid(),
-                  role: "assistant",
-                  content: `Based on our conversation and my analysis of ${companyInfo.companyName}, I've identified some specific opportunities for AI implementation in your industry. Would you like me to share a detailed breakdown of potential automation areas and expected ROI?`,
-                });
-                setInteractionStage(prev => ({ 
-                  ...prev, 
-                  hasShownInsights: true,
+      if (interactionStage.messageCount === 2 && !interactionStage.hasShownInsights) {
+        setTimeout(() => {
+          addMessage({
+            id: nanoid(),
+            role: "assistant",
+            content: `Based on our conversation and my analysis of ${companyInfo.companyName}, I've identified some specific opportunities for AI implementation in your industry. Would you like me to share a detailed breakdown of potential automation areas and expected ROI?`,
+          });
+          setInteractionStage(prev => ({ 
+            ...prev, 
+            hasShownInsights: true,
                   hasShownValue: true
-                }));
-              }, 1000);
-            }
-            
-            if (interactionStage.hasShownValue && !interactionStage.hasShownConsultation) {
-              setTimeout(() => {
-                setInteractionStage(prev => ({ ...prev, hasShownConsultation: true }));
-              }, 1500);
-            }
+          }));
+        }, 1000);
+      }
+
+      if (interactionStage.hasShownValue && !interactionStage.hasShownConsultation) {
+        setTimeout(() => {
+          setInteractionStage(prev => ({ ...prev, hasShownConsultation: true }));
+        }, 1500);
+      }
           } else if (chatRequest.status === 'failed') {
             clearInterval(pollInterval);
             setLoading(false);
